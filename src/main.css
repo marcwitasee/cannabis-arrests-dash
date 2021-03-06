@@ -57,6 +57,38 @@ body {
   background-color: #8CC084;
 }
 
+#main-container {
+  padding-right: 20px;
+  padding-left: 20px;
+  padding-top: 20px;
+}
+
+#right-container {
+  width: 30%;
+  min-width: 30%;
+}
+
+#info-box {
+  border: solid #0B6E4F 3px;
+  padding-left: 20px;
+  padding-right: 20px;
+  align-items: center;
+  border-radius: 10px; 
+}
+
+#info-box p {
+  margin-top: 0px;
+}
+
+#info-box h3 {
+  color: #073B3A;
+}
+
+#left-container {
+  width: 70%;
+  min-width: 70%;
+}
+
 #footer {
   position: absolute;
   bottom: 0;
