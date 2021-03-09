@@ -4,13 +4,13 @@
 
 import {myExampleUtil} from './utils';
 import {select} from 'd3-selection';
+import {json} from 'd3-fetch';
 // this command imports the css file, if you remove it your css wont be applied!
 import './main.css';
 
 // this is just one example of how to import data. there are lots of ways to do it!
-fetch('./data/example.json')
-  .then(response => response.json())
-  .then(data => myVis(data))
+json('./data/arrests.json')
+  .then(myVis)
   .catch(e => {
     console.log(e);
   });
@@ -18,10 +18,5 @@ fetch('./data/example.json')
 function myVis(data) {
   const width = 5000;
   const height = (36 / 24) * width;
-  console.log(data, height);
-  console.log('Hi!');
-  // EXAMPLE FIRST FUNCTION
-  select('#app')
-    .append('h1')
-    .text('hi!');
+  console.log(data);
 }
