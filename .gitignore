@@ -1,2 +1,8 @@
 node_modules/
 .DS_Store
+notebooks/cannabis/
+notebooks/.ipynb_checkpoints/
+data/.ipynb_checkpoints/
+data/metadata/
+data/acs5YR2017_co_counties.csv
+data/Marijuana_Arrests.csv
