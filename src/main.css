@@ -108,6 +108,14 @@ body {
   align-items: center;
 }
 
+.y-axis .tick {
+  stroke-width: 0.5px;
+}
+
+.y-axis .domain {
+  stroke: none;
+}
+
 #footer {
   flex-shrink: 0;
 }
