@@ -70,6 +70,23 @@ function myVis(data) {
     );
 
   svg
+    .append('g')
+    .attr('class', 'x-axis-label')
+    .attr('transform', `translate(${plotWidth / 2}, ${height - 20})`)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .text('Year');
+
+  svg
+    .append('g')
+    .attr('class', 'y-axis-label')
+    .attr('transform', `translate(-35, ${plotHeight / 2})`)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .attr('transform', 'rotate(-90)')
+    .text('Total Arrests');
+
+  svg
     .selectAll('.arrest-trend')
     .data([yearTotals])
     .join('path')
