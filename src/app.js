@@ -7,7 +7,6 @@ import {scaleLinear, scaleTime} from 'd3-scale';
 import './main.css';
 import {axisBottom, axisLeft} from 'd3-axis';
 
-// this is just one example of how to import data. there are lots of ways to do it!
 json('./data/arrests.json')
   .then(myVis)
   .catch(e => {
