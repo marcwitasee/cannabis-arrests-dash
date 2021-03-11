@@ -13,6 +13,12 @@ json('./data/arrests.json')
     console.log(e);
   });
 
+json('./data/arrests.json')
+  .then(myBarChart)
+  .catch(e => {
+    console.log(e);
+  });
+
 function getYearTotals(data, col) {
   const grouped = data.reduce((acc, row) => {
     acc[row['ArrestYear']] = (acc[row['ArrestYear']] || 0) + row[col];
@@ -30,9 +36,6 @@ function myVis(data) {
   const yearTotals = getYearTotals(data, 'totalArrests');
   const xDomain = extent(yearTotals, d => new Date(`01/01/${d.x}`));
   const yDomain = extent(yearTotals, d => d.y);
-  console.log(data);
-  console.log(yearTotals);
-  console.log(xDomain, yDomain);
 
   const xScale = scaleTime()
     .domain(xDomain)
@@ -94,4 +97,8 @@ function myVis(data) {
     .attr('stroke', '#A31621')
     .attr('stroke-width', 3)
     .attr('fill', 'none');
+}
+
+function myBarChart(data) {
+  console.log(data);
 }
