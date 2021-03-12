@@ -3,17 +3,20 @@ import {select} from 'd3-selection';
 import {json} from 'd3-fetch';
 import {extent} from 'd3-array';
 import {line} from 'd3-shape';
-import {scaleLinear, scaleTime} from 'd3-scale';
+import {scaleLinear, scaleTime, scaleBand} from 'd3-scale';
 import './main.css';
 import {axisBottom, axisLeft} from 'd3-axis';
 
-json('./data/arrests.json')
+json('./data/cannabis_arrests.json')
   .then(myVis)
   .catch(e => {
     console.log(e);
   });
 
-json('./data/arrests.json')
+Promise.all([
+  json('./data/cannabis_arrests.json'),
+  json('./data/coPopulation.json'),
+])
   .then(myBarChart)
   .catch(e => {
     console.log(e);
@@ -99,6 +102,86 @@ function myVis(data) {
     .attr('fill', 'none');
 }
 
+function getPopPercent(data, county) {
+  const row = data.find(element => element.County === county);
+  const rv = {name: 'Black Percent of Population', percent: row.blackPct};
+  return rv;
+}
+
+function getArrestPercent(data) {
+  const total = data.reduce((acc, row) => {
+    acc = acc + row.totalArrests;
+    return acc;
+  }, 0);
+  const percentArray = data.map(element => {
+    const rv = {
+      percent: element.blackArrests / element.totalArrests,
+      weight: element.totalArrests / total,
+    };
+    return rv;
+  });
+  const arrestPercent = percentArray.reduce((acc, row) => {
+    acc = acc + row.percent * row.weight;
+    return acc;
+  }, 0);
+  return {name: 'Black Percent of Cannabis Arrests', percent: arrestPercent};
+}
+
 function myBarChart(data) {
-  console.log(data);
+  const [arrests, pop] = data;
+  console.log('hello from myBarChart');
+  console.log(arrests);
+  console.log(pop);
+
+  const height = 300;
+  const width = 300;
+  const margin = {top: 50, bottom: 50, left: 50, right: 50};
+  const plotHeight = height - margin.top - margin.bottom;
+  const plotWidth = width - margin.left - margin.right;
+  const arrestPercent = getArrestPercent(arrests);
+  const popPercent = getPopPercent(pop, 'statewide');
+  const prepData = [popPercent, arrestPercent];
+  console.log(prepData);
+
+  const xDomain = extent(prepData, d => d.name);
+  const yDomain = extent(prepData, d => d.percent);
+  console.log(xDomain, yDomain);
+
+  const xScale = scaleBand()
+    .domain(xDomain)
+    .range([0, plotWidth]);
+
+  const yScale = scaleLinear()
+    .domain([0, yDomain[1]])
+    .range([0, plotHeight]);
+
+  const svg = select('#bar-chart')
+    .append('svg')
+    .attr('height', height)
+    .attr('width', width)
+    .append('g')
+    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+  const rectContainer = svg.append('g').attr('class', 'rect-container');
+  rectContainer
+    .selectAll('rect')
+    .data(prepData)
+    .join('rect')
+    .attr('x', d => xScale(d.name))
+    .attr('y', d => plotHeight - yScale(d.percent))
+    .attr('height', d => yScale(d.percent))
+    .attr('width', xScale.bandwidth())
+    .attr('fill', 'steelblue')
+    .attr('stroke', 'white');
+
+  svg
+    .append('g')
+    .attr('class', 'x-axis')
+    .call(axisBottom(xScale))
+    .attr('transform', `translate(0, ${plotHeight})`);
+
+  svg
+    .append('g')
+    .attr('class', 'y-axis')
+    .call(axisLeft(yScale.range([plotHeight, 0])));
 }
