@@ -104,7 +104,7 @@ function myVis(data) {
 
 function getPopPercent(data, county) {
   const row = data.find(element => element.County === county);
-  const rv = {name: 'Black Percent of Population', percent: row.blackPct};
+  const rv = {name: '% of Pop.', percent: row.blackPct};
   return rv;
 }
 
@@ -124,7 +124,7 @@ function getArrestPercent(data) {
     acc = acc + row.percent * row.weight;
     return acc;
   }, 0);
-  return {name: 'Black Percent of Cannabis Arrests', percent: arrestPercent};
+  return {name: '% of Cannabis Arrests', percent: arrestPercent};
 }
 
 function myBarChart(data) {
@@ -184,4 +184,13 @@ function myBarChart(data) {
     .append('g')
     .attr('class', 'y-axis')
     .call(axisLeft(yScale.range([plotHeight, 0])));
+
+  svg
+    .append('g')
+    .attr('class', 'y-axis-label')
+    .attr('transform', `translate(-35, ${plotHeight / 2})`)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .attr('transform', 'rotate(-90)')
+    .text('Percentage');
 }

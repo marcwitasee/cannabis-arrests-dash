@@ -81,6 +81,10 @@ body {
   color: #073B3A;
 }
 
+#bar-chart {
+  justify-content: center;
+}
+
 #left-container {
   padding-right: 10px;
   width: 70%;
