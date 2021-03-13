@@ -3,9 +3,11 @@ import {select} from 'd3-selection';
 import {json} from 'd3-fetch';
 import {extent} from 'd3-array';
 import {line} from 'd3-shape';
-import {scaleLinear, scaleTime, scaleBand} from 'd3-scale';
-import './main.css';
+import {scaleLinear, scaleTime, scaleBand, scaleQuantize} from 'd3-scale';
 import {axisBottom, axisLeft} from 'd3-axis';
+import {geoPath, geoAlbers} from 'd3-geo';
+import {schemeBlues} from 'd3-scale-chromatic';
+import './main.css';
 
 json('./data/cannabis_arrests.json')
   .then(myVis)
@@ -21,6 +23,13 @@ Promise.all([
   .catch(e => {
     console.log(e);
   });
+
+Promise.all([
+  json('./data/cannabis_arrests.json'),
+  json('./data/Counties in Colorado.geojson'),
+])
+  .then(myMap)
+  .catch(e => console.log(e));
 
 function getYearTotals(data, col) {
   const grouped = data.reduce((acc, row) => {
@@ -129,9 +138,6 @@ function getArrestPercent(data) {
 
 function myBarChart(data) {
   const [arrests, pop] = data;
-  console.log('hello from myBarChart');
-  console.log(arrests);
-  console.log(pop);
 
   const height = 300;
   const width = 300;
@@ -141,11 +147,9 @@ function myBarChart(data) {
   const arrestPercent = getArrestPercent(arrests);
   const popPercent = getPopPercent(pop, 'statewide');
   const prepData = [popPercent, arrestPercent];
-  console.log(prepData);
 
   const xDomain = extent(prepData, d => d.name);
   const yDomain = extent(prepData, d => d.percent);
-  console.log(xDomain, yDomain);
 
   const xScale = scaleBand()
     .domain(xDomain)
@@ -193,4 +197,40 @@ function myBarChart(data) {
     .attr('text-anchor', 'middle')
     .attr('transform', 'rotate(-90)')
     .text('Percentage');
+}
+
+function myMap(data) {
+  const [arrests, mapData] = data;
+  console.log(arrests);
+  console.log(mapData);
+  const width = 800;
+  const height = 800;
+  const margin = {top: 0, bottom: 0, left: 0, right: 0};
+  const plotHeight = height - margin.top - margin.bottom;
+  const plotWidth = width - margin.right - margin.left;
+
+  const svg = select('#map')
+    .append('svg')
+    .attr('height', height)
+    .attr('width', width)
+    .append('g')
+    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+  const coProjection = geoAlbers()
+    .scale(7000)
+    .rotate([105.490632, 0])
+    .center([0, 38.952884])
+    .translate([width / 2, height / 2]);
+
+  console.log(coProjection);
+
+  const co_geoPath = geoPath(coProjection);
+
+  svg
+    .selectAll('path')
+    .data(mapData.features)
+    .join('path')
+    .attr('fill', '#ccc')
+    .attr('stroke', '#333')
+    .attr('d', co_geoPath);
 }
