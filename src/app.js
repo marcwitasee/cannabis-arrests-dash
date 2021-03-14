@@ -234,7 +234,7 @@ function myMap(data) {
     population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
   );
 
-  let totals = getYearTotals(arrests, 'County', 'totalArrests', 2012);
+  let totals = getYearTotals(arrests, 'County', 'totalArrests', undefined);
   const xDomain = extent(totals, d => d.y);
   totals = Object.assign(
     new Map(totals.map(obj => [obj.x.toUpperCase(), obj.y])),
