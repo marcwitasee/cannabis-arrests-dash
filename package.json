@@ -34,7 +34,8 @@
     "d3-scale": "^3.2.3",
     "d3-scale-chromatic": "^2.0.0",
     "d3-selection": "^2.0.0",
-    "d3-shape": "^2.1.0"
+    "d3-shape": "^2.1.0",
+    "d3-transition": "^2.0.0"
   },
   "scripts": {
     "start": "webpack-dev-server",

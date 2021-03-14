@@ -7,6 +7,7 @@ import {scaleLinear, scaleTime, scaleBand, scaleQuantize} from 'd3-scale';
 import {axisBottom, axisLeft} from 'd3-axis';
 import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeBlues} from 'd3-scale-chromatic';
+import {transition} from 'd3-transition';
 import './main.css';
 json('./data/cannabis_arrests.json')
   .then(myVis)
@@ -91,6 +92,7 @@ function myCharts(data) {
   console.log(mapData);
   console.log(population);
 
+  // Static map elements
   const width = 650;
   const height = 500;
   const margin = {top: 0, bottom: 0, left: 0, right: 0};
@@ -109,14 +111,14 @@ function myCharts(data) {
     .center([0, 38.999])
     .translate([width / 2, height / 2]);
 
+  myMap(data, year, svg, coProjection);
+
   selectAll('.year-button').on('change', event => {
     const input = event.target.id;
     if (input === 'All Years') year = undefined;
     else year = +event.target.id;
     myMap(data, year, svg, coProjection);
   });
-
-  myMap(data, year, svg, coProjection);
 }
 
 function myVis(data) {
@@ -261,6 +263,7 @@ function myBarChart(data) {
 
 function myMap(data, year, svg, projection) {
   const [arrests, mapData, population] = data;
+  const t = transition().duration(500);
 
   const popTotals = new Map(
     population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
@@ -280,17 +283,18 @@ function myMap(data, year, svg, projection) {
   svg
     .selectAll('path')
     .data(mapData.features)
-    .join('path')
-    .attr('fill', d => {
-      // console.log(d);
-      // console.log(totals.get(d.properties.county));
-      // console.log(
-      //   (totals.get(d.properties.county) / popTotals.get(d.properties.county)) *
-      //     1000,
-      // );
-      // console.log(totals.get(d.properties.county));
-      return color(totals.get(d.properties.county));
-    })
+    .join(
+      enter =>
+        enter
+          .append('path')
+          .attr('fill', d => color(totals.get(d.properties.county))),
+      update =>
+        update.call(el =>
+          el
+            .transition(t)
+            .attr('fill', d => color(totals.get(d.properties.county))),
+        ),
+    )
     .attr('stroke', '#333')
     .attr('d', co_geoPath);
 }
