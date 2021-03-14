@@ -15,14 +15,14 @@ json('./data/cannabis_arrests.json')
     console.log(e);
   });
 
-Promise.all([
-  json('./data/cannabis_arrests.json'),
-  json('./data/coPopulation.json'),
-])
-  .then(myBarChart)
-  .catch(e => {
-    console.log(e);
-  });
+// Promise.all([
+//   json('./data/cannabis_arrests.json'),
+//   json('./data/coPopulation.json'),
+// ])
+//   .then(myBarChart)
+//   .catch(e => {
+//     console.log(e);
+//   });
 
 // Promise.all([
 //   json('./data/cannabis_arrests.json'),
@@ -67,22 +67,26 @@ function getPopPercent(data, county) {
   return rv;
 }
 
-function getArrestPercent(data) {
-  const total = data.reduce((acc, row) => {
-    acc = acc + row.totalArrests;
-    return acc;
-  }, 0);
-  const percentArray = data.map(element => {
+function getArrestPercent(data, year) {
+  let filtered;
+  if (year) filtered = data.filter(row => row.ArrestYear === year);
+  else filtered = data;
+
+  const total = filtered.reduce(
+    (acc, row) => (acc = acc + row.totalArrests),
+    0,
+  );
+  const percentArray = filtered.map(element => {
     const rv = {
       percent: element.blackArrests / element.totalArrests,
       weight: element.totalArrests / total,
     };
     return rv;
   });
-  const arrestPercent = percentArray.reduce((acc, row) => {
-    acc = acc + row.percent * row.weight;
-    return acc;
-  }, 0);
+  const arrestPercent = percentArray.reduce(
+    (acc, row) => (acc = acc + row.percent * row.weight),
+    0,
+  );
   return {name: '% of Cannabis Arrests', percent: arrestPercent};
 }
 
@@ -93,25 +97,67 @@ function myCharts(data) {
   console.log(population);
 
   // Static map elements
-  const width = 650;
-  const height = 500;
-  const margin = {top: 0, bottom: 0, left: 0, right: 0};
+  const mapWidth = 650;
+  const mapHeight = 500;
+  const mapMargin = {top: 0, bottom: 0, left: 0, right: 0};
   let year = undefined;
 
-  const svg = select('#map')
+  const mapSvg = select('#map')
     .append('svg')
-    .attr('height', height)
-    .attr('width', width)
+    .attr('height', mapHeight)
+    .attr('width', mapWidth)
     .append('g')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+    .attr('transform', `translate(${mapMargin.left}, ${mapMargin.top})`);
 
   const coProjection = geoAlbers()
     .scale(6500)
     .rotate([105.490632, 0])
     .center([0, 38.999])
-    .translate([width / 2, height / 2]);
+    .translate([mapWidth / 2, mapHeight / 2]);
 
-  myMap(data, year, svg, coProjection);
+  myMap(data, year, mapSvg, coProjection);
+
+  // Static bar chart elements
+  const bcHeight = 300;
+  const bcWidth = 300;
+  const bcMargin = {top: 50, bottom: 50, left: 50, right: 50};
+  const bcPlotHeight = bcHeight - bcMargin.top - bcMargin.bottom;
+  const bcPlotWidth = bcWidth - bcMargin.left - bcMargin.right;
+
+  const bcSvg = select('#bar-chart')
+    .append('svg')
+    .attr('height', bcHeight)
+    .attr('width', bcWidth)
+    .append('g')
+    .attr('transform', `translate(${bcMargin.left}, ${bcMargin.top})`);
+
+  const bcXAxis = bcSvg
+    .append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0, ${bcPlotHeight})`);
+
+  const bcYAxis = bcSvg.append('g').attr('class', 'y-axis');
+
+  bcSvg
+    .append('g')
+    .attr('class', 'y-axis-label')
+    .attr('transform', `translate(-35, ${bcPlotHeight / 2})`)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .attr('transform', 'rotate(-90)')
+    .text('Percentage');
+
+  const rectContainer = bcSvg.append('g').attr('class', 'rect-container');
+
+  myBarChart(
+    data,
+    year,
+    rectContainer,
+    bcXAxis,
+    bcYAxis,
+    bcPlotWidth,
+    bcPlotHeight,
+  );
 
   selectAll('.year-button').on('change', event => {
     const input = event.target.id;
@@ -198,16 +244,19 @@ function myVis(data) {
     .attr('fill', 'none');
 }
 
-function myBarChart(data) {
-  const [arrests, pop] = data;
+function myBarChart(
+  data,
+  year,
+  rectContainer,
+  xAxis,
+  yAxis,
+  plotWidth,
+  plotHeight,
+) {
+  const [arrests, mapData, population] = data;
 
-  const height = 300;
-  const width = 300;
-  const margin = {top: 50, bottom: 50, left: 50, right: 50};
-  const plotHeight = height - margin.top - margin.bottom;
-  const plotWidth = width - margin.left - margin.right;
-  const arrestPercent = getArrestPercent(arrests);
-  const popPercent = getPopPercent(pop, 'statewide');
+  const arrestPercent = getArrestPercent(arrests, year);
+  const popPercent = getPopPercent(population, 'statewide');
   const prepData = [popPercent, arrestPercent];
 
   const xDomain = extent(prepData, d => d.name);
@@ -221,14 +270,6 @@ function myBarChart(data) {
     .domain([0, yDomain[1]])
     .range([0, plotHeight]);
 
-  const svg = select('#bar-chart')
-    .append('svg')
-    .attr('height', height)
-    .attr('width', width)
-    .append('g')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-  const rectContainer = svg.append('g').attr('class', 'rect-container');
   rectContainer
     .selectAll('rect')
     .data(prepData)
@@ -240,25 +281,9 @@ function myBarChart(data) {
     .attr('fill', 'steelblue')
     .attr('stroke', 'white');
 
-  svg
-    .append('g')
-    .attr('class', 'x-axis')
-    .call(axisBottom(xScale))
-    .attr('transform', `translate(0, ${plotHeight})`);
+  xAxis.call(axisBottom(xScale));
 
-  svg
-    .append('g')
-    .attr('class', 'y-axis')
-    .call(axisLeft(yScale.range([plotHeight, 0])));
-
-  svg
-    .append('g')
-    .attr('class', 'y-axis-label')
-    .attr('transform', `translate(-35, ${plotHeight / 2})`)
-    .append('text')
-    .attr('text-anchor', 'middle')
-    .attr('transform', 'rotate(-90)')
-    .text('Percentage');
+  yAxis.call(axisLeft(yScale.range([plotHeight, 0])));
 }
 
 function myMap(data, year, svg, projection) {
