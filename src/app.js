@@ -9,28 +9,11 @@ import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeBlues} from 'd3-scale-chromatic';
 import {transition} from 'd3-transition';
 import './main.css';
-json('./data/cannabis_arrests.json')
-  .then(myVis)
-  .catch(e => {
-    console.log(e);
-  });
-
-// Promise.all([
-//   json('./data/cannabis_arrests.json'),
-//   json('./data/coPopulation.json'),
-// ])
-//   .then(myBarChart)
+// json('./data/cannabis_arrests.json')
+//   .then(lineChart)
 //   .catch(e => {
 //     console.log(e);
 //   });
-
-// Promise.all([
-//   json('./data/cannabis_arrests.json'),
-//   json('./data/Counties in Colorado.geojson'),
-//   json('./data/coPopulation.json'),
-// ])
-//   .then(myMap)
-//   .catch(e => console.log(e));
 
 Promise.all([
   json('./data/cannabis_arrests.json'),
@@ -40,7 +23,8 @@ Promise.all([
   .then(myCharts)
   .catch(e => console.log(e));
 
-function getYearTotals(data, key, value, year) {
+function getYearTotals(data, key, value, year, county) {
+  console.log(data);
   let grouped;
   if (year) {
     grouped = data.reduce((acc, row) => {
@@ -51,8 +35,10 @@ function getYearTotals(data, key, value, year) {
     }, {});
   } else {
     grouped = data.reduce((acc, row) => {
-      const counties = getCountiesWithAllYears();
-      if (counties.includes(row['County'])) {
+      let counties;
+      if (county) counties = [county];
+      else counties = getCountiesWithAllYears().map(el => el.toUpperCase());
+      if (counties.includes(row['County'].toUpperCase())) {
         acc[row[key]] = (acc[row[key]] || 0) + row[value];
       }
       return acc;
@@ -63,7 +49,7 @@ function getYearTotals(data, key, value, year) {
 
 function getPopPercent(data, county) {
   const row = data.find(element => element.County.toUpperCase() === county);
-  console.log(row);
+  // console.log(row);
   const rv = {name: '% of Pop.', percent: row.blackPct};
   return rv;
 }
@@ -77,7 +63,7 @@ function getArrestPercent(data, year, county) {
     filtered = filtered.filter(row => row.County.toUpperCase() === county);
   }
 
-  console.log(filtered);
+  // console.log(filtered);
 
   const total = filtered.reduce(
     (acc, row) => (acc = acc + row.totalArrests),
@@ -91,7 +77,7 @@ function getArrestPercent(data, year, county) {
     return rv;
   });
 
-  console.log(percentArray);
+  // console.log(percentArray);
   const arrestPercent = percentArray.reduce(
     (acc, row) => (acc = acc + row.percent * row.weight),
     0,
@@ -100,11 +86,6 @@ function getArrestPercent(data, year, county) {
 }
 
 function myCharts(data) {
-  const [arrests, mapData, population] = data;
-  // console.log(arrests);
-  // console.log(mapData);
-  // console.log(population);
-
   // Static map elements
   const mapWidth = 650;
   const mapHeight = 500;
@@ -170,6 +151,45 @@ function myCharts(data) {
     bcPlotHeight,
   );
 
+  const lcWidth = 800;
+  const lcHeight = 200;
+  const lcMargin = {top: 0, bottom: 50, left: 50, right: 20};
+  const lcPlotHeight = lcHeight - lcMargin.bottom - lcMargin.top;
+  const lcPlotWidth = lcWidth - lcMargin.left - lcMargin.right;
+
+  const lcSvg = select('#line-chart')
+    .append('svg')
+    .attr('height', lcHeight)
+    .attr('width', lcWidth)
+    .append('g')
+    .attr('transform', `translate(${lcMargin.left}, ${lcMargin.top})`);
+
+  const lcXAxis = lcSvg
+    .append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0, ${lcPlotHeight})`);
+
+  const lcYAxis = lcSvg.append('g').attr('class', 'y-axis');
+
+  lcSvg
+    .append('g')
+    .attr('class', 'x-axis-label')
+    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 20})`)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .text('Year');
+
+  lcSvg
+    .append('g')
+    .attr('class', 'y-axis-label')
+    .attr('transform', `translate(-35, ${lcPlotHeight / 2})`)
+    .append('text')
+    .attr('text-anchor', 'middle')
+    .attr('transform', 'rotate(-90)')
+    .text('Total Arrests');
+
+  lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
+
   selectAll('.year-button').on('change', event => {
     const input = event.target.id;
     if (input === 'All Years') year = undefined;
@@ -189,7 +209,7 @@ function myCharts(data) {
 
   selectAll('.map-path').on('click', (event, obj) => {
     // console.log(event, obj);
-    console.log(obj.properties.county);
+    // console.log(obj.properties.county);
     county = obj.properties.county;
     myBarChart(
       data,
@@ -201,20 +221,20 @@ function myCharts(data) {
       bcPlotWidth,
       bcPlotHeight,
     );
+    lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
   });
 }
 
-function myVis(data) {
-  const width = 800;
-  const height = 200;
-  const margin = {top: 0, bottom: 50, left: 50, right: 20};
-  const plotHeight = height - margin.bottom - margin.top;
-  const plotWidth = width - margin.left - margin.right;
+function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
+  const [arrests, mapData, population] = data;
+  const t = transition().duration(500);
+
   const yearTotals = getYearTotals(
-    data,
+    arrests,
     'ArrestYear',
     'totalArrests',
     undefined,
+    county,
   );
   const xDomain = extent(yearTotals, d => new Date(`01/01/${d.x}`));
   const yDomain = extent(yearTotals, d => d.y);
@@ -231,44 +251,13 @@ function myVis(data) {
     .x(d => xScale(new Date(`01/01/${d.x}`)))
     .y(d => yScale(d.y));
 
-  const svg = select('#line-chart')
-    .append('svg')
-    .attr('height', height)
-    .attr('width', width)
-    .append('g')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+  xAxis.call(axisBottom(xScale));
 
-  svg
-    .append('g')
-    .attr('class', 'x-axis')
-    .call(axisBottom(xScale))
-    .attr('transform', `translate(0, ${plotHeight})`);
-
-  svg
-    .append('g')
-    .attr('class', 'y-axis')
-    .call(
-      axisLeft(yScale)
-        .tickSize(-plotWidth)
-        .ticks(7),
-    );
-
-  svg
-    .append('g')
-    .attr('class', 'x-axis-label')
-    .attr('transform', `translate(${plotWidth / 2}, ${height - 20})`)
-    .append('text')
-    .attr('text-anchor', 'middle')
-    .text('Year');
-
-  svg
-    .append('g')
-    .attr('class', 'y-axis-label')
-    .attr('transform', `translate(-35, ${plotHeight / 2})`)
-    .append('text')
-    .attr('text-anchor', 'middle')
-    .attr('transform', 'rotate(-90)')
-    .text('Total Arrests');
+  yAxis.call(
+    axisLeft(yScale)
+      .tickSize(-plotWidth)
+      .ticks(7),
+  );
 
   svg
     .selectAll('.arrest-trend')
@@ -346,7 +335,13 @@ function myMap(data, year, svg, projection) {
   //   population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
   // );
 
-  let totals = getYearTotals(arrests, 'County', 'totalArrests', year);
+  let totals = getYearTotals(
+    arrests,
+    'County',
+    'totalArrests',
+    year,
+    undefined,
+  );
   const xDomain = extent(totals, d => d.y);
   totals = Object.assign(
     new Map(totals.map(obj => [obj.x.toUpperCase(), obj.y])),
