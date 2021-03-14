@@ -1,5 +1,5 @@
 import {getCountiesWithAllYears} from './utils';
-import {select} from 'd3-selection';
+import {select, selectAll} from 'd3-selection';
 import {json} from 'd3-fetch';
 import {extent} from 'd3-array';
 import {line} from 'd3-shape';
@@ -23,13 +23,13 @@ Promise.all([
     console.log(e);
   });
 
-Promise.all([
-  json('./data/cannabis_arrests.json'),
-  json('./data/Counties in Colorado.geojson'),
-  json('./data/coPopulation.json'),
-])
-  .then(myMap)
-  .catch(e => console.log(e));
+// Promise.all([
+//   json('./data/cannabis_arrests.json'),
+//   json('./data/Counties in Colorado.geojson'),
+//   json('./data/coPopulation.json'),
+// ])
+//   .then(myMap)
+//   .catch(e => console.log(e));
 
 Promise.all([
   json('./data/cannabis_arrests.json'),
@@ -38,13 +38,6 @@ Promise.all([
 ])
   .then(myCharts)
   .catch(e => console.log(e));
-
-function myCharts(data) {
-  const [arrests, mapData, population] = data;
-  console.log(arrests);
-  console.log(mapData);
-  console.log(population);
-}
 
 function getYearTotals(data, key, value, year) {
   let grouped;
@@ -65,6 +58,65 @@ function getYearTotals(data, key, value, year) {
     }, {});
   }
   return Object.entries(grouped).map(([x, y]) => ({x, y}));
+}
+
+function getPopPercent(data, county) {
+  const row = data.find(element => element.County === county);
+  const rv = {name: '% of Pop.', percent: row.blackPct};
+  return rv;
+}
+
+function getArrestPercent(data) {
+  const total = data.reduce((acc, row) => {
+    acc = acc + row.totalArrests;
+    return acc;
+  }, 0);
+  const percentArray = data.map(element => {
+    const rv = {
+      percent: element.blackArrests / element.totalArrests,
+      weight: element.totalArrests / total,
+    };
+    return rv;
+  });
+  const arrestPercent = percentArray.reduce((acc, row) => {
+    acc = acc + row.percent * row.weight;
+    return acc;
+  }, 0);
+  return {name: '% of Cannabis Arrests', percent: arrestPercent};
+}
+
+function myCharts(data) {
+  const [arrests, mapData, population] = data;
+  console.log(arrests);
+  console.log(mapData);
+  console.log(population);
+
+  const width = 650;
+  const height = 500;
+  const margin = {top: 0, bottom: 0, left: 0, right: 0};
+  let year = undefined;
+
+  const svg = select('#map')
+    .append('svg')
+    .attr('height', height)
+    .attr('width', width)
+    .append('g')
+    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+  const coProjection = geoAlbers()
+    .scale(6500)
+    .rotate([105.490632, 0])
+    .center([0, 38.999])
+    .translate([width / 2, height / 2]);
+
+  selectAll('.year-button').on('change', event => {
+    const input = event.target.id;
+    if (input === 'All Years') year = undefined;
+    else year = +event.target.id;
+    myMap(data, year, svg, coProjection);
+  });
+
+  myMap(data, year, svg, coProjection);
 }
 
 function myVis(data) {
@@ -144,31 +196,6 @@ function myVis(data) {
     .attr('fill', 'none');
 }
 
-function getPopPercent(data, county) {
-  const row = data.find(element => element.County === county);
-  const rv = {name: '% of Pop.', percent: row.blackPct};
-  return rv;
-}
-
-function getArrestPercent(data) {
-  const total = data.reduce((acc, row) => {
-    acc = acc + row.totalArrests;
-    return acc;
-  }, 0);
-  const percentArray = data.map(element => {
-    const rv = {
-      percent: element.blackArrests / element.totalArrests,
-      weight: element.totalArrests / total,
-    };
-    return rv;
-  });
-  const arrestPercent = percentArray.reduce((acc, row) => {
-    acc = acc + row.percent * row.weight;
-    return acc;
-  }, 0);
-  return {name: '% of Cannabis Arrests', percent: arrestPercent};
-}
-
 function myBarChart(data) {
   const [arrests, pop] = data;
 
@@ -232,45 +259,23 @@ function myBarChart(data) {
     .text('Percentage');
 }
 
-function myMap(data) {
+function myMap(data, year, svg, projection) {
   const [arrests, mapData, population] = data;
-  console.log(arrests);
-  console.log(mapData);
-  console.log(population);
-
-  const width = 650;
-  const height = 500;
-  const margin = {top: 0, bottom: 0, left: 0, right: 0};
-  const plotHeight = height - margin.top - margin.bottom;
-  const plotWidth = width - margin.right - margin.left;
 
   const popTotals = new Map(
     population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
   );
 
-  let totals = getYearTotals(arrests, 'County', 'totalArrests', undefined);
+  let totals = getYearTotals(arrests, 'County', 'totalArrests', year);
   const xDomain = extent(totals, d => d.y);
   totals = Object.assign(
     new Map(totals.map(obj => [obj.x.toUpperCase(), obj.y])),
   );
-  console.log(totals);
+  // console.log(totals);
 
   const color = scaleQuantize(xDomain, schemeBlues[9]);
 
-  const svg = select('#map')
-    .append('svg')
-    .attr('height', height)
-    .attr('width', width)
-    .append('g')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-  const coProjection = geoAlbers()
-    .scale(6500)
-    .rotate([105.490632, 0])
-    .center([0, 38.999])
-    .translate([width / 2, height / 2]);
-
-  const co_geoPath = geoPath(coProjection);
+  const co_geoPath = geoPath(projection);
 
   svg
     .selectAll('path')
@@ -283,7 +288,7 @@ function myMap(data) {
       //   (totals.get(d.properties.county) / popTotals.get(d.properties.county)) *
       //     1000,
       // );
-      console.log(totals.get(d.properties.county));
+      // console.log(totals.get(d.properties.county));
       return color(totals.get(d.properties.county));
     })
     .attr('stroke', '#333')
