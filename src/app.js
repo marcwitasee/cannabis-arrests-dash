@@ -62,15 +62,22 @@ function getYearTotals(data, key, value, year) {
 }
 
 function getPopPercent(data, county) {
-  const row = data.find(element => element.County === county);
+  const row = data.find(element => element.County.toUpperCase() === county);
+  console.log(row);
   const rv = {name: '% of Pop.', percent: row.blackPct};
   return rv;
 }
 
-function getArrestPercent(data, year) {
+function getArrestPercent(data, year, county) {
   let filtered;
   if (year) filtered = data.filter(row => row.ArrestYear === year);
   else filtered = data;
+
+  if (county) {
+    filtered = filtered.filter(row => row.County.toUpperCase() === county);
+  }
+
+  console.log(filtered);
 
   const total = filtered.reduce(
     (acc, row) => (acc = acc + row.totalArrests),
@@ -83,6 +90,8 @@ function getArrestPercent(data, year) {
     };
     return rv;
   });
+
+  console.log(percentArray);
   const arrestPercent = percentArray.reduce(
     (acc, row) => (acc = acc + row.percent * row.weight),
     0,
@@ -92,15 +101,16 @@ function getArrestPercent(data, year) {
 
 function myCharts(data) {
   const [arrests, mapData, population] = data;
-  console.log(arrests);
-  console.log(mapData);
-  console.log(population);
+  // console.log(arrests);
+  // console.log(mapData);
+  // console.log(population);
 
   // Static map elements
   const mapWidth = 650;
   const mapHeight = 500;
   const mapMargin = {top: 0, bottom: 0, left: 0, right: 0};
   let year = undefined;
+  let county = undefined;
 
   const mapSvg = select('#map')
     .append('svg')
@@ -152,6 +162,7 @@ function myCharts(data) {
   myBarChart(
     data,
     year,
+    county,
     rectContainer,
     bcXAxis,
     bcYAxis,
@@ -163,7 +174,33 @@ function myCharts(data) {
     const input = event.target.id;
     if (input === 'All Years') year = undefined;
     else year = +event.target.id;
-    myMap(data, year, svg, coProjection);
+    myMap(data, year, mapSvg, coProjection);
+    myBarChart(
+      data,
+      year,
+      county,
+      rectContainer,
+      bcXAxis,
+      bcYAxis,
+      bcPlotWidth,
+      bcPlotHeight,
+    );
+  });
+
+  selectAll('.map-path').on('click', (event, obj) => {
+    // console.log(event, obj);
+    console.log(obj.properties.county);
+    county = obj.properties.county;
+    myBarChart(
+      data,
+      year,
+      county,
+      rectContainer,
+      bcXAxis,
+      bcYAxis,
+      bcPlotWidth,
+      bcPlotHeight,
+    );
   });
 }
 
@@ -247,6 +284,7 @@ function myVis(data) {
 function myBarChart(
   data,
   year,
+  county,
   rectContainer,
   xAxis,
   yAxis,
@@ -254,29 +292,43 @@ function myBarChart(
   plotHeight,
 ) {
   const [arrests, mapData, population] = data;
+  const t = transition().duration(500);
 
-  const arrestPercent = getArrestPercent(arrests, year);
-  const popPercent = getPopPercent(population, 'statewide');
+  const arrestPercent = getArrestPercent(arrests, year, county);
+  let popCounty;
+  if (!county) popCounty = 'STATEWIDE';
+  else popCounty = county;
+  const popPercent = getPopPercent(population, popCounty);
   const prepData = [popPercent, arrestPercent];
 
   const xDomain = extent(prepData, d => d.name);
-  const yDomain = extent(prepData, d => d.percent);
 
   const xScale = scaleBand()
     .domain(xDomain)
     .range([0, plotWidth]);
 
   const yScale = scaleLinear()
-    .domain([0, yDomain[1]])
+    .domain([0, 0.12])
     .range([0, plotHeight]);
 
   rectContainer
     .selectAll('rect')
     .data(prepData)
-    .join('rect')
+    .join(
+      enter =>
+        enter
+          .append('rect')
+          .attr('y', d => plotHeight - yScale(d.percent))
+          .attr('height', d => yScale(d.percent)),
+      update =>
+        update.call(el =>
+          el
+            .transition(t)
+            .attr('y', d => plotHeight - yScale(d.percent))
+            .attr('height', d => yScale(d.percent)),
+        ),
+    )
     .attr('x', d => xScale(d.name))
-    .attr('y', d => plotHeight - yScale(d.percent))
-    .attr('height', d => yScale(d.percent))
     .attr('width', xScale.bandwidth())
     .attr('fill', 'steelblue')
     .attr('stroke', 'white');
@@ -290,9 +342,9 @@ function myMap(data, year, svg, projection) {
   const [arrests, mapData, population] = data;
   const t = transition().duration(500);
 
-  const popTotals = new Map(
-    population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
-  );
+  // const popTotals = new Map(
+  //   population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
+  // );
 
   let totals = getYearTotals(arrests, 'County', 'totalArrests', year);
   const xDomain = extent(totals, d => d.y);
@@ -321,5 +373,6 @@ function myMap(data, year, svg, projection) {
         ),
     )
     .attr('stroke', '#333')
-    .attr('d', co_geoPath);
+    .attr('d', co_geoPath)
+    .attr('class', 'map-path');
 }
