@@ -1,4 +1,4 @@
-import {myExampleUtil} from './utils';
+import {getCountiesWithAllYears} from './utils';
 import {select} from 'd3-selection';
 import {json} from 'd3-fetch';
 import {extent} from 'd3-array';
@@ -8,7 +8,7 @@ import {axisBottom, axisLeft} from 'd3-axis';
 import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeBlues} from 'd3-scale-chromatic';
 import './main.css';
-
+console.log(getCountiesWithAllYears());
 json('./data/cannabis_arrests.json')
   .then(myVis)
   .catch(e => {
@@ -27,15 +27,29 @@ Promise.all([
 Promise.all([
   json('./data/cannabis_arrests.json'),
   json('./data/Counties in Colorado.geojson'),
+  json('./data/coPopulation.json'),
 ])
   .then(myMap)
   .catch(e => console.log(e));
 
-function getYearTotals(data, col) {
-  const grouped = data.reduce((acc, row) => {
-    acc[row['ArrestYear']] = (acc[row['ArrestYear']] || 0) + row[col];
-    return acc;
-  }, {});
+function getYearTotals(data, key, value, year) {
+  let grouped;
+  if (year) {
+    grouped = data.reduce((acc, row) => {
+      if (row['ArrestYear'] == year) {
+        acc[row[key]] = (acc[row[key]] || 0) + row[value];
+      }
+      return acc;
+    }, {});
+  } else {
+    grouped = data.reduce((acc, row) => {
+      const counties = getCountiesWithAllYears();
+      if (counties.includes(row['County'])) {
+        acc[row[key]] = (acc[row[key]] || 0) + row[value];
+      }
+      return acc;
+    }, {});
+  }
   return Object.entries(grouped).map(([x, y]) => ({x, y}));
 }
 
@@ -45,7 +59,12 @@ function myVis(data) {
   const margin = {top: 0, bottom: 50, left: 50, right: 20};
   const plotHeight = height - margin.bottom - margin.top;
   const plotWidth = width - margin.left - margin.right;
-  const yearTotals = getYearTotals(data, 'totalArrests');
+  const yearTotals = getYearTotals(
+    data,
+    'ArrestYear',
+    'totalArrests',
+    undefined,
+  );
   const xDomain = extent(yearTotals, d => new Date(`01/01/${d.x}`));
   const yDomain = extent(yearTotals, d => d.y);
 
@@ -200,14 +219,29 @@ function myBarChart(data) {
 }
 
 function myMap(data) {
-  const [arrests, mapData] = data;
+  const [arrests, mapData, population] = data;
   console.log(arrests);
   console.log(mapData);
-  const width = 800;
-  const height = 800;
+  console.log(population);
+
+  const width = 650;
+  const height = 500;
   const margin = {top: 0, bottom: 0, left: 0, right: 0};
   const plotHeight = height - margin.top - margin.bottom;
   const plotWidth = width - margin.right - margin.left;
+
+  const popTotals = new Map(
+    population.map(obj => [obj.County.toUpperCase(), obj.totalPop]),
+  );
+
+  let totals = getYearTotals(arrests, 'County', 'totalArrests', 2012);
+  const xDomain = extent(totals, d => d.y);
+  totals = Object.assign(
+    new Map(totals.map(obj => [obj.x.toUpperCase(), obj.y])),
+  );
+  console.log(totals);
+
+  const color = scaleQuantize(xDomain, schemeBlues[9]);
 
   const svg = select('#map')
     .append('svg')
@@ -217,12 +251,10 @@ function myMap(data) {
     .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
   const coProjection = geoAlbers()
-    .scale(7000)
+    .scale(6500)
     .rotate([105.490632, 0])
-    .center([0, 38.952884])
+    .center([0, 38.999])
     .translate([width / 2, height / 2]);
-
-  console.log(coProjection);
 
   const co_geoPath = geoPath(coProjection);
 
@@ -230,7 +262,16 @@ function myMap(data) {
     .selectAll('path')
     .data(mapData.features)
     .join('path')
-    .attr('fill', '#ccc')
+    .attr('fill', d => {
+      // console.log(d);
+      // console.log(totals.get(d.properties.county));
+      // console.log(
+      //   (totals.get(d.properties.county) / popTotals.get(d.properties.county)) *
+      //     1000,
+      // );
+      console.log(totals.get(d.properties.county));
+      return color(totals.get(d.properties.county));
+    })
     .attr('stroke', '#333')
     .attr('d', co_geoPath);
 }

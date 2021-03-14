@@ -1,5 +1,43 @@
 // example of how to export functions
-// this particular util only doubles a value so it shouldn't be too useful
-export function myExampleUtil(x) {
-  return x * 2;
+export function getCountiesWithAllYears() {
+  return [
+    'Adams',
+    'Alamosa',
+    'Arapahoe',
+    'Archuleta',
+    'Boulder',
+    'Broomfield',
+    'Chaffee',
+    'Clear Creek',
+    'Custer',
+    'Delta',
+    'Denver',
+    'Douglas',
+    'Eagle',
+    'El Paso',
+    'Elbert',
+    'Fremont',
+    'Garfield',
+    'Gilpin',
+    'Gunnison',
+    'Jefferson',
+    'Kit Carson',
+    'La Plata',
+    'Larimer',
+    'Logan',
+    'Mesa',
+    'Moffat',
+    'Montezuma',
+    'Montrose',
+    'Morgan',
+    'Otero',
+    'Prowers',
+    'Pueblo',
+    'Rio Blanco',
+    'Rio Grande',
+    'Routt',
+    'Summit',
+    'Teller',
+    'Weld',
+  ];
 }
