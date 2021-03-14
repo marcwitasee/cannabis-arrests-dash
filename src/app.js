@@ -8,7 +8,6 @@ import {axisBottom, axisLeft} from 'd3-axis';
 import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeBlues} from 'd3-scale-chromatic';
 import './main.css';
-console.log(getCountiesWithAllYears());
 json('./data/cannabis_arrests.json')
   .then(myVis)
   .catch(e => {
@@ -31,6 +30,21 @@ Promise.all([
 ])
   .then(myMap)
   .catch(e => console.log(e));
+
+Promise.all([
+  json('./data/cannabis_arrests.json'),
+  json('./data/Counties in Colorado.geojson'),
+  json('./data/coPopulation.json'),
+])
+  .then(myCharts)
+  .catch(e => console.log(e));
+
+function myCharts(data) {
+  const [arrests, mapData, population] = data;
+  console.log(arrests);
+  console.log(mapData);
+  console.log(population);
+}
 
 function getYearTotals(data, key, value, year) {
   let grouped;
