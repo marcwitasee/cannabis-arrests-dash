@@ -1,4 +1,4 @@
-import {getCountiesWithAllYears} from './utils';
+import {getCountiesWithAllYears, legend} from './utils';
 import {select, selectAll} from 'd3-selection';
 import {json} from 'd3-fetch';
 import {extent, count} from 'd3-array';
@@ -19,7 +19,6 @@ Promise.all([
   .catch(e => console.log(e));
 
 function getYearTotals(data, key, value, year, county) {
-  console.log(data);
   let grouped;
   if (year) {
     grouped = data.reduce((acc, row) => {
@@ -44,7 +43,6 @@ function getYearTotals(data, key, value, year, county) {
 
 function getPopPercent(data, county) {
   const row = data.find(element => element.County.toUpperCase() === county);
-  // console.log(row);
   const rv = {name: '% of Pop.', percent: row.blackPct};
   return rv;
 }
@@ -58,8 +56,6 @@ function getArrestPercent(data, year, county) {
     filtered = filtered.filter(row => row.County.toUpperCase() === county);
   }
 
-  // console.log(filtered);
-
   const total = filtered.reduce(
     (acc, row) => (acc = acc + row.totalArrests),
     0,
@@ -72,7 +68,6 @@ function getArrestPercent(data, year, county) {
     return rv;
   });
 
-  // console.log(percentArray);
   const arrestPercent = percentArray.reduce(
     (acc, row) => (acc = acc + row.percent * row.weight),
     0,
@@ -93,6 +88,7 @@ function myCharts(data) {
     .attr('height', mapHeight)
     .attr('width', mapWidth)
     .append('g')
+    .attr('id', 'map-paths')
     .attr('transform', `translate(${mapMargin.left}, ${mapMargin.top})`);
 
   const coProjection = geoAlbers()
@@ -215,8 +211,6 @@ function myCharts(data) {
   });
 
   selectAll('.map-path').on('click', (event, obj) => {
-    // console.log(event, obj);
-    // console.log(obj.properties.county);
     county = obj.properties.county;
     myBarChart(
       data,
@@ -421,20 +415,29 @@ function myMap(data, year, svg, projection) {
   totals = Object.assign(
     new Map(totals.map(obj => [obj.x.toUpperCase(), obj.y])),
   );
-  // console.log(totals);
 
-  const color = scaleQuantize(xDomain, schemeBlues[9]);
+  const domainScale = xDomain[1] / 5;
+
+  console.log(xDomain, domainScale);
+  console.log(totals);
+
+  const color = scaleQuantize(
+    [xDomain[0], xDomain[1] - domainScale],
+    schemeBlues[5],
+  );
 
   const co_geoPath = geoPath(projection);
 
-  svg
+  select('#map-paths')
     .selectAll('path')
     .data(mapData.features)
     .join(
       enter =>
-        enter
-          .append('path')
-          .attr('fill', d => color(totals.get(d.properties.county))),
+        enter.append('path').attr('fill', d => {
+          console.log(totals.get(d.properties.county));
+          console.log(color(totals.get(d.properties.county)));
+          return color(totals.get(d.properties.county));
+        }),
       update =>
         update.call(el =>
           el
@@ -445,4 +448,12 @@ function myMap(data, year, svg, projection) {
     .attr('stroke', '#333')
     .attr('d', co_geoPath)
     .attr('class', 'map-path');
+
+  select('#map-legend')
+    .select('svg')
+    .remove();
+
+  select('#map-legend').append(() =>
+    legend({color, title: 'Total Arrests', tickFormat: '.1f', width: 400}),
+  );
 }
