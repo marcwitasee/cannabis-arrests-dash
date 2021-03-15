@@ -8,6 +8,8 @@ import {axisBottom, axisLeft} from 'd3-axis';
 import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeBlues} from 'd3-scale-chromatic';
 import {transition} from 'd3-transition';
+import {format} from 'd3-format';
+import {mesh} from 'topojson';
 import './main.css';
 
 Promise.all([
@@ -355,7 +357,7 @@ function myBarChart(
 
   xAxis.call(axisBottom(xScale));
 
-  yAxis.call(axisLeft(yScale.range([plotHeight, 0])));
+  yAxis.call(axisLeft(yScale.range([plotHeight, 0])).tickFormat(format('.0%')));
 
   let yearTitle;
   if (year) yearTitle = year;
