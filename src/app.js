@@ -296,13 +296,14 @@ function myBarChart(
   const prepData = [popPercent, arrestPercent];
 
   const xDomain = extent(prepData, d => d.name);
+  const yDomain = extent(prepData, d => d.percent);
 
   const xScale = scaleBand()
     .domain(xDomain)
     .range([0, plotWidth]);
 
   const yScale = scaleLinear()
-    .domain([0, 0.12])
+    .domain([0, yDomain[1] + 0.05])
     .range([0, plotHeight]);
 
   rectContainer
