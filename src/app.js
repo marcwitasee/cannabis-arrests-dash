@@ -239,12 +239,14 @@ function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
   const xDomain = extent(yearTotals, d => new Date(`01/01/${d.x}`));
   const yDomain = extent(yearTotals, d => d.y);
 
+  const scaleFactor = (yDomain[1] - yDomain[0]) / 4;
+
   const xScale = scaleTime()
     .domain(xDomain)
     .range([0, plotWidth]);
 
   const yScale = scaleLinear()
-    .domain([yDomain[0] - 1000, yDomain[1] + 1000])
+    .domain([yDomain[0] - scaleFactor, yDomain[1] + scaleFactor])
     .range([plotHeight, 0]);
 
   const lineScale = line()
@@ -262,9 +264,12 @@ function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
   svg
     .selectAll('.arrest-trend')
     .data([yearTotals])
-    .join('path')
+    .join(
+      enter => enter.append('path').attr('d', d => lineScale(d)),
+      update =>
+        update.call(el => el.transition(t).attr('d', d => lineScale(d))),
+    )
     .attr('class', 'arrest-trend')
-    .attr('d', d => lineScale(d))
     .attr('stroke', '#A31621')
     .attr('stroke-width', 3)
     .attr('fill', 'none');
