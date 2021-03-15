@@ -153,7 +153,7 @@ function myCharts(data) {
 
   const lcWidth = 800;
   const lcHeight = 200;
-  const lcMargin = {top: 0, bottom: 50, left: 50, right: 20};
+  const lcMargin = {top: 20, bottom: 50, left: 50, right: 20};
   const lcPlotHeight = lcHeight - lcMargin.bottom - lcMargin.top;
   const lcPlotWidth = lcWidth - lcMargin.left - lcMargin.right;
 
@@ -187,6 +187,13 @@ function myCharts(data) {
     .attr('text-anchor', 'middle')
     .attr('transform', 'rotate(-90)')
     .text('Total Arrests');
+
+  lcSvg.append('g').attr('class', 'line-container');
+
+  lcSvg
+    .append('g')
+    .attr('class', 'lc-title-container')
+    .attr('transform', `translate(${lcPlotWidth / 2}, ${0})`);
 
   lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
 
@@ -261,7 +268,7 @@ function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
       .ticks(7),
   );
 
-  svg
+  select('.line-container')
     .selectAll('.arrest-trend')
     .data([yearTotals])
     .join(
@@ -273,6 +280,16 @@ function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
     .attr('stroke', '#A31621')
     .attr('stroke-width', 3)
     .attr('fill', 'none');
+
+  select('.lc-title-container')
+    .selectAll('text')
+    .data([county])
+    .join(
+      enter => enter.append('text').text(d => `Arrest Totals for ${d}`),
+      update =>
+        update.call(el => el.transition(t).text(d => `Arrest Totals for ${d}`)),
+    )
+    .attr('text-anchor', 'middle');
 }
 
 function myBarChart(
