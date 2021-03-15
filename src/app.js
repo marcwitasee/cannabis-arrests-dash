@@ -181,11 +181,6 @@ function myCharts(data) {
 
   lcSvg.append('g').attr('class', 'line-container');
 
-  lcSvg
-    .append('g')
-    .attr('class', 'lc-title-container')
-    .attr('transform', `translate(${lcPlotWidth / 2}, ${0})`);
-
   lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
 
   selectAll('.year-button').on('change', event => {
@@ -207,6 +202,13 @@ function myCharts(data) {
 
   selectAll('.map-path').on('click', (event, obj) => {
     county = obj.properties.county;
+    // console.log(select(event.target));
+    // selectAll('.map-path')
+    //   .attr('stroke', '#333')
+    //   .attr('stroke-width', '1px');
+    // select(event.target)
+    //   .attr('stroke', 'green')
+    //   .attr('stroke-width', '2.5px');
     myBarChart(
       data,
       year,
@@ -289,15 +291,13 @@ function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
   if (!county) titleCounty = 'All Counties';
   else titleCounty = county;
 
-  select('.lc-title-container')
-    .selectAll('text')
-    .data([titleCounty])
-    .join(
-      enter => enter.append('text').text(d => `Arrest Totals for ${d}`),
-      update =>
-        update.call(el => el.transition(t).text(d => `Arrest Totals for ${d}`)),
-    )
-    .attr('text-anchor', 'middle');
+  select('#line-chart-title')
+    .select('h3')
+    .remove();
+
+  select('#line-chart-title')
+    .append('h3')
+    .text(`Yearly Arrest Totals for ${titleCounty}`);
 }
 
 function myBarChart(
@@ -398,8 +398,8 @@ function myMap(data, year, svg, projection) {
 
   const domainScale = xDomain[1] / 5;
 
-  console.log(xDomain, domainScale);
-  console.log(totals);
+  // console.log(xDomain, domainScale);
+  // console.log(totals);
 
   const color = scaleQuantize(
     [xDomain[0], xDomain[1] - domainScale],
@@ -414,8 +414,8 @@ function myMap(data, year, svg, projection) {
     .join(
       enter =>
         enter.append('path').attr('fill', d => {
-          console.log(totals.get(d.properties.county));
-          console.log(color(totals.get(d.properties.county)));
+          // console.log(totals.get(d.properties.county));
+          // console.log(color(totals.get(d.properties.county)));
           return color(totals.get(d.properties.county));
         }),
       update =>
