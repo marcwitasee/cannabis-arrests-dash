@@ -129,11 +129,6 @@ function myCharts(data) {
     .attr('transform', 'rotate(-90)')
     .text('Percentage');
 
-  bcSvg
-    .append('g')
-    .attr('class', 'bc-title-container')
-    .attr('transform', `translate(${bcPlotWidth / 2}, ${0})`);
-
   const rectContainer = bcSvg.append('g').attr('class', 'rect-container');
 
   myBarChart(
@@ -170,7 +165,7 @@ function myCharts(data) {
   lcSvg
     .append('g')
     .attr('class', 'x-axis-label')
-    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 20})`)
+    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 40})`)
     .append('text')
     .attr('text-anchor', 'middle')
     .text('Year');
@@ -370,30 +365,15 @@ function myBarChart(
   if (county) countyTitle = county;
   else countyTitle = 'All Counties';
 
-  select('.bc-title-container')
-    .selectAll('text')
-    .data([[countyTitle, yearTitle]])
-    .join(
-      enter =>
-        enter
-          .append('text')
-          .text(
-            d =>
-              `Black Share of Arrests vs. Black Share of Population: ${d[0]}, ${d[1]}`,
-          ),
-      update =>
-        update.call(el =>
-          el
-            .transition(t)
-            .text(
-              d =>
-                `Black Share of Arrests vs. Black Share of Population: ${d[0]}, ${d[1]}`,
-            ),
-        ),
-    )
-    .attr('text-anchor', 'middle')
-    .attr('textLength', '90%')
-    .attr('lengthAdjust', 'spacingAndGlyphs');
+  select('#bar-chart-title')
+    .select('h3')
+    .remove();
+
+  select('#bar-chart-title')
+    .append('h3')
+    .text(
+      `Black Share of Arrests vs. Black Share of Population: ${countyTitle}, ${yearTitle}`,
+    );
 }
 
 function myMap(data, year, svg, projection) {

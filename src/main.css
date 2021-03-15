@@ -81,6 +81,14 @@ body {
   color: #073B3A;
 }
 
+#bar-chart-title {
+  margin-bottom: -40px;
+}
+
+#bar-chart-title > h3 {
+  text-align: center;
+}
+
 #bar-chart {
   justify-content: center;
 }
@@ -104,11 +112,15 @@ body {
 #map {
   background-color: #CED3DC;
   height: 70%;
-  width: 70%;
+  width: 90%;
   opacity: 50%;
   border-radius: 10px;
-  margin-bottom: 50px;
+  margin-bottom: 10px;
   justify-content: center;
+}
+
+#reset-button {
+  margin-bottom: 10px;
 }
 
 #filter-bar {
@@ -120,6 +132,10 @@ body {
   margin-bottom: 25px;
   justify-content: space-evenly;
   align-items: center;
+}
+
+#line-chart {
+  margin-bottom: 30px;
 }
 
 .y-axis .tick {
