@@ -1,7 +1,7 @@
 import {getCountiesWithAllYears} from './utils';
 import {select, selectAll} from 'd3-selection';
 import {json} from 'd3-fetch';
-import {extent} from 'd3-array';
+import {extent, count} from 'd3-array';
 import {line} from 'd3-shape';
 import {scaleLinear, scaleTime, scaleBand, scaleQuantize} from 'd3-scale';
 import {axisBottom, axisLeft} from 'd3-axis';
@@ -9,11 +9,6 @@ import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeBlues} from 'd3-scale-chromatic';
 import {transition} from 'd3-transition';
 import './main.css';
-// json('./data/cannabis_arrests.json')
-//   .then(lineChart)
-//   .catch(e => {
-//     console.log(e);
-//   });
 
 Promise.all([
   json('./data/cannabis_arrests.json'),
@@ -138,6 +133,11 @@ function myCharts(data) {
     .attr('transform', 'rotate(-90)')
     .text('Percentage');
 
+  bcSvg
+    .append('g')
+    .attr('class', 'bc-title-container')
+    .attr('transform', `translate(${bcPlotWidth / 2}, ${0})`);
+
   const rectContainer = bcSvg.append('g').attr('class', 'rect-container');
 
   myBarChart(
@@ -230,6 +230,21 @@ function myCharts(data) {
     );
     lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
   });
+
+  select('#county-reset').on('click', event => {
+    county = undefined;
+    myBarChart(
+      data,
+      year,
+      county,
+      rectContainer,
+      bcXAxis,
+      bcYAxis,
+      bcPlotWidth,
+      bcPlotHeight,
+    );
+    lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
+  });
 }
 
 function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
@@ -281,9 +296,13 @@ function lineChart(data, svg, xAxis, yAxis, county, plotWidth, plotHeight) {
     .attr('stroke-width', 3)
     .attr('fill', 'none');
 
+  let titleCounty;
+  if (!county) titleCounty = 'All Counties';
+  else titleCounty = county;
+
   select('.lc-title-container')
     .selectAll('text')
-    .data([county])
+    .data([titleCounty])
     .join(
       enter => enter.append('text').text(d => `Arrest Totals for ${d}`),
       update =>
@@ -348,6 +367,39 @@ function myBarChart(
   xAxis.call(axisBottom(xScale));
 
   yAxis.call(axisLeft(yScale.range([plotHeight, 0])));
+
+  let yearTitle;
+  if (year) yearTitle = year;
+  else yearTitle = '2012-17';
+
+  let countyTitle;
+  if (county) countyTitle = county;
+  else countyTitle = 'All Counties';
+
+  select('.bc-title-container')
+    .selectAll('text')
+    .data([[countyTitle, yearTitle]])
+    .join(
+      enter =>
+        enter
+          .append('text')
+          .text(
+            d =>
+              `Black Share of Arrests vs. Black Share of Population: ${d[0]}, ${d[1]}`,
+          ),
+      update =>
+        update.call(el =>
+          el
+            .transition(t)
+            .text(
+              d =>
+                `Black Share of Arrests vs. Black Share of Population: ${d[0]}, ${d[1]}`,
+            ),
+        ),
+    )
+    .attr('text-anchor', 'middle')
+    .attr('textLength', '90%')
+    .attr('lengthAdjust', 'spacingAndGlyphs');
 }
 
 function myMap(data, year, svg, projection) {

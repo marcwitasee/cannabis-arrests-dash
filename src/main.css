@@ -85,6 +85,15 @@ body {
   justify-content: center;
 }
 
+.bc-title-container {
+  font-size: 12px;
+}
+
+.bc-title-container > text {
+  word-wrap: initial;
+  max-width: 20%;
+}
+
 #left-container {
   padding-right: 10px;
   width: 70%;
