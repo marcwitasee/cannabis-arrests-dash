@@ -1,12 +1,12 @@
 import {getCountiesWithAllYears, legend} from './utils';
 import {select, selectAll} from 'd3-selection';
 import {json} from 'd3-fetch';
-import {extent, count} from 'd3-array';
+import {extent} from 'd3-array';
 import {line} from 'd3-shape';
 import {scaleLinear, scaleTime, scaleBand, scaleQuantize} from 'd3-scale';
 import {axisBottom, axisLeft} from 'd3-axis';
 import {geoPath, geoAlbers} from 'd3-geo';
-import {schemeBlues} from 'd3-scale-chromatic';
+import {schemeGreens} from 'd3-scale-chromatic';
 import {transition} from 'd3-transition';
 import {format} from 'd3-format';
 import {mesh} from 'topojson';
@@ -85,7 +85,12 @@ function myCharts(data) {
   let year = undefined;
   let county = undefined;
 
-  const mapSvg = select('#map')
+  const mapContainer = select('#map')
+    .append('div')
+    .attr('class', 'map-container')
+    .style('position', 'relative');
+
+  const mapSvg = mapContainer
     .append('svg')
     .attr('height', mapHeight)
     .attr('width', mapWidth)
@@ -93,18 +98,23 @@ function myCharts(data) {
     .attr('id', 'map-paths')
     .attr('transform', `translate(${mapMargin.left}, ${mapMargin.top})`);
 
+  const tooltip = mapContainer
+    .append('div')
+    .attr('id', 'tooltip')
+    .style('display', 'none');
+
   const coProjection = geoAlbers()
     .scale(6500)
     .rotate([105.490632, 0])
     .center([0, 38.999])
     .translate([mapWidth / 2, mapHeight / 2]);
 
-  myMap(data, year, mapSvg, coProjection);
+  myMap(data, year, mapSvg, coProjection, tooltip);
 
   // Static bar chart elements
   const bcHeight = 300;
   const bcWidth = 300;
-  const bcMargin = {top: 50, bottom: 50, left: 50, right: 50};
+  const bcMargin = {top: 30, bottom: 30, left: 50, right: 5};
   const bcPlotHeight = bcHeight - bcMargin.top - bcMargin.bottom;
   const bcPlotWidth = bcWidth - bcMargin.left - bcMargin.right;
 
@@ -146,7 +156,7 @@ function myCharts(data) {
 
   const lcWidth = 800;
   const lcHeight = 200;
-  const lcMargin = {top: 20, bottom: 50, left: 50, right: 20};
+  const lcMargin = {top: 10, bottom: 30, left: 50, right: 20};
   const lcPlotHeight = lcHeight - lcMargin.bottom - lcMargin.top;
   const lcPlotWidth = lcWidth - lcMargin.left - lcMargin.right;
 
@@ -167,7 +177,7 @@ function myCharts(data) {
   lcSvg
     .append('g')
     .attr('class', 'x-axis-label')
-    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 40})`)
+    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 15})`)
     .append('text')
     .attr('text-anchor', 'middle')
     .text('Year');
@@ -189,7 +199,7 @@ function myCharts(data) {
     const input = event.target.id;
     if (input === 'All Years') year = undefined;
     else year = +event.target.id;
-    myMap(data, year, mapSvg, coProjection);
+    myMap(data, year, mapSvg, coProjection, tooltip);
     myBarChart(
       data,
       year,
@@ -352,7 +362,7 @@ function myBarChart(
     )
     .attr('x', d => xScale(d.name))
     .attr('width', xScale.bandwidth())
-    .attr('fill', 'steelblue')
+    .attr('fill', '#684551')
     .attr('stroke', 'white');
 
   xAxis.call(axisBottom(xScale));
@@ -378,7 +388,7 @@ function myBarChart(
     );
 }
 
-function myMap(data, year, svg, projection) {
+function myMap(data, year, svg, projection, tooltip) {
   const [arrests, mapData, population] = data;
   const t = transition().duration(500);
 
@@ -398,14 +408,11 @@ function myMap(data, year, svg, projection) {
     new Map(totals.map(obj => [obj.x.toUpperCase(), obj.y])),
   );
 
-  const domainScale = xDomain[1] / 5;
-
-  // console.log(xDomain, domainScale);
-  // console.log(totals);
+  const domainScale = Math.ceil(xDomain[1] / 5);
 
   const color = scaleQuantize(
     [xDomain[0], xDomain[1] - domainScale],
-    schemeBlues[5],
+    schemeGreens[5],
   );
 
   const co_geoPath = geoPath(projection);
@@ -416,18 +423,31 @@ function myMap(data, year, svg, projection) {
     .join(
       enter =>
         enter.append('path').attr('fill', d => {
-          // console.log(totals.get(d.properties.county));
-          // console.log(color(totals.get(d.properties.county)));
-          return color(totals.get(d.properties.county));
+          return color(totals.get(d.properties.county))
+            ? color(totals.get(d.properties.county))
+            : '#B0A1BA';
         }),
       update =>
         update.call(el =>
           el
             .transition(t)
-            .attr('fill', d => color(totals.get(d.properties.county))),
+            .attr('fill', d =>
+              color(totals.get(d.properties.county))
+                ? color(totals.get(d.properties.county))
+                : '#B0A1BA',
+            ),
         ),
     )
-    .attr('stroke', '#333')
+    .on('mouseenter', (e, d) => {
+      tooltip
+        .style('display', 'block')
+        .style('left', `${e.layerX}px`)
+        .style('top', `${e.layerY}px`)
+        .text(`${d.properties.county}: ${totals.get(d.properties.county)}`);
+    })
+    .on('mouseleave', (e, d) => tooltip.style('display', 'none'))
+    .attr('stroke', '#073B3A')
+    .attr('stroke-width', '0.5px')
     .attr('d', co_geoPath)
     .attr('class', 'map-path');
 
@@ -436,6 +456,6 @@ function myMap(data, year, svg, projection) {
     .remove();
 
   select('#map-legend').append(() =>
-    legend({color, title: 'Total Arrests', tickFormat: '.1f', width: 400}),
+    legend({color, title: 'Total Arrests', tickFormat: '.0f', width: 400}),
   );
 }

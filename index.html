@@ -7,13 +7,13 @@
   <body>
     <div class='header-footer'></div>
     <div id='outer-container' class='flex-down'>
-      <div id='dashboard-title-container' class='flex'>
-        <div id='dashboard-title' class='flex-down'>
-          <h1>Explore Colorado's Cannabis Arrest Data</h1>
-        </div>
-      </div>
       <div id='main-container' class='flex'>
         <div id='left-container' class='flex-down'>
+          <div id='dashboard-title-container' class='flex'>
+            <div id='dashboard-title' class='flex-down'>
+              <h1>Explore Colorado's Cannabis Arrest Data</h1>
+            </div>
+          </div>
           <div id='filter-bar' class='flex'>
             <input type="radio" id='2012' class='year-button' name='year' value='2012'>
             <label for="2012">2012</label>
@@ -30,21 +30,22 @@
             <input type="radio" id='All Years' class='year-button' name='year' value='All Years' checked>
             <label for="All Years">All Years</label>
           </div>
-          <div><h3>Total Cannabis Arrests in Colorado by County</h3></div>
-          <div id='map-legend'></div>
-          <div id='map' class='flex'></div>
-          <div id='reset-button'>
-            <button id='county-reset'>
-              <label for="">Reset County Filter</label>
-            </button>
+          <div id='map-title'><h3>Total Cannabis Arrests in Colorado by County</h3></div>
+          <div id='map' class='flex-down'>
+            <div id='map-legend'></div>
           </div>
           <div id='line-chart-title' class='flex'></div>
           <div id='line-chart'></div>
         </div>
-        <div id='right-container'>
+        <div id='right-container' class='flex-down'>
           <div id='info-box' class='flex-down'>
             <h3>How to Use This Dashboard</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sapien pellentesque habitant morbi tristique. Quam viverra orci sagittis eu volutpat odio facilisis. Lectus nulla at volutpat diam ut. Auctor augue mauris augue neque gravida in. Dui faucibus in ornare quam viverra orci sagittis eu. Amet luctus venenatis lectus magna fringilla urna porttitor rhoncus dolor. Netus et malesuada fames ac turpis egestas.</p>
+            <p>Welcome to the dashboard! This dashboard shows arrest data for cannabis offenses at the county-level in Colorado from 2012 to 2017. Click on the checkboxes above the map to filter the data by year. Click on a county on the map to filter the data by county. Click the button below to clear the county filter and reset the data for all counties.</p>
+          </div>
+          <div id='reset-button'>
+            <a id='county-reset'>
+              Reset County Filter
+            </a>
           </div>
           <div id='bar-chart-title' class='flex'></div>
           <div id='bar-chart' class='flex'></div>
@@ -54,4 +55,5 @@
     </div>
     <script src="bundle.js"></script>
   </body>
-</html>
+  </html>
+  
