@@ -38,8 +38,9 @@ body {
   border-radius: 10px;
   padding-right: 20px;
   padding-left: 20px;
-  border: solid #073B3A 2px;
+  border: double #073B3A 5px;
   justify-content: center;
+  margin-bottom: 20px;
 }
 
 #dashboard-title h1 {
@@ -48,8 +49,8 @@ body {
 
 .header-footer {
   width: 100%;
-  height: 30px;
-  background-color: #8CC084;
+  height: 40px;
+  background-color: #073B3A;
 }
 
 #main-container {
@@ -65,20 +66,25 @@ body {
 }
 
 #info-box {
-  border: solid #073B3A 2px;
+  /* border: solid #073B3A 2px; */
   padding-left: 20px;
   padding-right: 20px;
   align-items: center;
   border-radius: 10px; 
   margin-bottom: 10px;
+  background-color: #073B3A;
 }
 
 #info-box p {
   margin-top: 0px;
+  text-align: center;
+  color: white;
 }
 
 #info-box h3 {
-  color: #073B3A;
+  font-weight: bold;
+  color: #FFFFCC;
+  text-decoration: underline;
 }
 
 #bar-chart-title {
@@ -94,6 +100,10 @@ body {
   justify-content: center;
   border: 2px solid #073B3A;
   border-radius: 10px;
+  padding-top: 10px;
+  padding-right: 20px;
+  padding-left: 10px;
+  padding-bottom: 10px;
 }
 
 #left-container {
@@ -122,11 +132,13 @@ body {
 #tooltip {
   position: absolute;
   pointer-events: none;
-  background: black;
-  color: white;
+  background: #073B3A;
+  color: #FFFFCC;
   border-radius: 10px;
   padding: 10px;
-  min-width: 150px;
+  min-width: 100px;
+  opacity: 90%;
+  font-size: 14px;
 }
 
 #map-legend {
@@ -139,20 +151,19 @@ body {
 }
 
 #county-reset {
-	box-shadow: 0px 10px 14px -7px #3e7327;
-	background:linear-gradient(to bottom, #77b55a 5%, #72b352 100%);
-	background-color:#8CC084;
+	/* background:linear-gradient(to bottom, #77b55a 5%, #72b352 100%); */
+	background-color:#073B3A;
 	border-radius:4px;
-	border:1px solid #4b8f29;
+	/* border:1px solid #4b8f29; */
 	display:inline-block;
 	cursor:pointer;
 	color:#ffffff;
-	font-family:Arial;
+	font-family:Verdana, Geneva, sans-serif;
 	font-size:13px;
 	font-weight:bold;
 	padding:6px 12px;
 	text-decoration:none;
-	text-shadow:0px 1px 0px #5b8a3c;
+	/* text-shadow:0px 1px 0px #5b8a3c; */
 }
 
 #county-reset:hover {
@@ -167,8 +178,8 @@ body {
 
 #filter-bar {
   width: 80%;
-  height: 30px;
-  border: solid #073B3A 2px;
+  height: 40px;
+  border: solid #073B3A 1px;
   border-radius: 10px;
   margin-bottom: 10px;
   justify-content: space-evenly;
@@ -176,13 +187,64 @@ body {
 }
 
 #filter-bar label {
+  display: block;
+  position: relative;
+  padding-left: 25px;
   color: #073B3A;
+  font-size: 16px;
+}
+
+#filter-bar input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+#filter-bar label:hover input ~ .custom-checkmark {
+  background-color: #ccc;
+}
+
+#filter-bar label input:checked ~ .custom-checkmark {
+  background-color: #073B3A;
+}
+
+.custom-checkmark {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 15px;
+  width: 15px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+.custom-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+#filter-bar label input:checked ~ .custom-checkmark:after {
+  display: block;
+}
+
+#filter-bar label .custom-checkmark:after {
+  top: 4.3px;
+  left: 4.3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
 }
 
 #line-chart {
   margin-bottom: 30px;
   border: 2px solid #073B3A;
   border-radius: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
 #line-chart-title {
@@ -202,6 +264,14 @@ body {
 
 .y-axis .domain {
   stroke: none;
+}
+
+.y-axis-label text {
+  font-size: 14px;
+}
+
+.x-axis-label text {
+  font-size: 14px;
 }
 
 #footer {

@@ -9,7 +9,6 @@ import {geoPath, geoAlbers} from 'd3-geo';
 import {schemeGreens} from 'd3-scale-chromatic';
 import {transition} from 'd3-transition';
 import {format} from 'd3-format';
-import {mesh} from 'topojson';
 import './main.css';
 
 Promise.all([
@@ -114,7 +113,7 @@ function myCharts(data) {
   // Static bar chart elements
   const bcHeight = 300;
   const bcWidth = 300;
-  const bcMargin = {top: 30, bottom: 30, left: 50, right: 5};
+  const bcMargin = {top: 10, bottom: 20, left: 50, right: 5};
   const bcPlotHeight = bcHeight - bcMargin.top - bcMargin.bottom;
   const bcPlotWidth = bcWidth - bcMargin.left - bcMargin.right;
 
@@ -135,7 +134,7 @@ function myCharts(data) {
   bcSvg
     .append('g')
     .attr('class', 'y-axis-label')
-    .attr('transform', `translate(-35, ${bcPlotHeight / 2})`)
+    .attr('transform', `translate(-40, ${bcPlotHeight / 2})`)
     .append('text')
     .attr('text-anchor', 'middle')
     .attr('transform', 'rotate(-90)')
@@ -177,7 +176,7 @@ function myCharts(data) {
   lcSvg
     .append('g')
     .attr('class', 'x-axis-label')
-    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 15})`)
+    .attr('transform', `translate(${lcPlotWidth / 2}, ${lcHeight - 10})`)
     .append('text')
     .attr('text-anchor', 'middle')
     .text('Year');
@@ -185,7 +184,7 @@ function myCharts(data) {
   lcSvg
     .append('g')
     .attr('class', 'y-axis-label')
-    .attr('transform', `translate(-35, ${lcPlotHeight / 2})`)
+    .attr('transform', `translate(-40, ${lcPlotHeight / 2})`)
     .append('text')
     .attr('text-anchor', 'middle')
     .attr('transform', 'rotate(-90)')
@@ -340,7 +339,7 @@ function myBarChart(
     .range([0, plotWidth]);
 
   const yScale = scaleLinear()
-    .domain([0, yDomain[1] + 0.05])
+    .domain([0, 0.3])
     .range([0, plotHeight]);
 
   rectContainer
@@ -439,11 +438,15 @@ function myMap(data, year, svg, projection, tooltip) {
         ),
     )
     .on('mouseenter', (e, d) => {
+      let countyName = d.properties.county.toLowerCase();
+      countyName = countyName.charAt(0).toUpperCase() + countyName.slice(1);
+      let arrestTotals = totals.get(d.properties.county);
+      if (!arrestTotals) arrestTotals = 'No Data';
       tooltip
         .style('display', 'block')
         .style('left', `${e.layerX}px`)
         .style('top', `${e.layerY}px`)
-        .text(`${d.properties.county}: ${totals.get(d.properties.county)}`);
+        .text(`${countyName} : ${arrestTotals}`);
     })
     .on('mouseleave', (e, d) => tooltip.style('display', 'none'))
     .attr('stroke', '#073B3A')
@@ -455,7 +458,15 @@ function myMap(data, year, svg, projection, tooltip) {
     .select('svg')
     .remove();
 
+  let legendYear;
+  if (year) legendYear = year;
+  else legendYear = `2012-2017`;
   select('#map-legend').append(() =>
-    legend({color, title: 'Total Arrests', tickFormat: '.0f', width: 400}),
+    legend({
+      color,
+      title: `Total Arrests for ${legendYear}`,
+      tickFormat: '.0f',
+      width: 400,
+    }),
   );
 }
