@@ -83,6 +83,7 @@ function myCharts(data) {
   const mapMargin = {top: 0, bottom: 0, left: 0, right: 0};
   let year = undefined;
   let county = undefined;
+  let highlightCounty = undefined;
 
   const mapContainer = select('#map')
     .append('div')
@@ -108,7 +109,7 @@ function myCharts(data) {
     .center([0, 38.999])
     .translate([mapWidth / 2, mapHeight / 2]);
 
-  myMap(data, year, mapSvg, coProjection, tooltip);
+  myMap(data, year, mapSvg, coProjection, tooltip, highlightCounty);
 
   // Static bar chart elements
   const bcHeight = 300;
@@ -198,7 +199,7 @@ function myCharts(data) {
     const input = event.target.id;
     if (input === 'All Years') year = undefined;
     else year = +event.target.id;
-    myMap(data, year, mapSvg, coProjection, tooltip);
+    myMap(data, year, mapSvg, coProjection, tooltip, highlightCounty);
     myBarChart(
       data,
       year,
@@ -213,13 +214,7 @@ function myCharts(data) {
 
   selectAll('.map-path').on('click', (event, obj) => {
     county = obj.properties.county;
-    // console.log(select(event.target));
-    // selectAll('.map-path')
-    //   .attr('stroke', '#333')
-    //   .attr('stroke-width', '1px');
-    // select(event.target)
-    //   .attr('stroke', 'green')
-    //   .attr('stroke-width', '2.5px');
+    highlightCounty = obj.properties.county;
     myBarChart(
       data,
       year,
@@ -231,10 +226,12 @@ function myCharts(data) {
       bcPlotHeight,
     );
     lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
+    myMap(data, year, mapSvg, coProjection, tooltip, highlightCounty);
   });
 
   select('#county-reset').on('click', event => {
     county = undefined;
+    highlightCounty = undefined;
     myBarChart(
       data,
       year,
@@ -246,6 +243,7 @@ function myCharts(data) {
       bcPlotHeight,
     );
     lineChart(data, lcSvg, lcXAxis, lcYAxis, county, lcPlotWidth, lcPlotHeight);
+    myMap(data, year, mapSvg, coProjection, tooltip, highlightCounty);
   });
 }
 
@@ -339,7 +337,7 @@ function myBarChart(
     .range([0, plotWidth]);
 
   const yScale = scaleLinear()
-    .domain([0, 0.3])
+    .domain([0, 0.28])
     .range([0, plotHeight]);
 
   rectContainer
@@ -387,7 +385,7 @@ function myBarChart(
     );
 }
 
-function myMap(data, year, svg, projection, tooltip) {
+function myMap(data, year, svg, projection, tooltip, highlightCounty) {
   const [arrests, mapData, population] = data;
   const t = transition().duration(500);
 
@@ -424,7 +422,7 @@ function myMap(data, year, svg, projection, tooltip) {
         enter.append('path').attr('fill', d => {
           return color(totals.get(d.properties.county))
             ? color(totals.get(d.properties.county))
-            : '#B0A1BA';
+            : '#B1B1BE';
         }),
       update =>
         update.call(el =>
@@ -433,7 +431,7 @@ function myMap(data, year, svg, projection, tooltip) {
             .attr('fill', d =>
               color(totals.get(d.properties.county))
                 ? color(totals.get(d.properties.county))
-                : '#B0A1BA',
+                : '#B1B1BE',
             ),
         ),
     )
@@ -447,10 +445,21 @@ function myMap(data, year, svg, projection, tooltip) {
         .style('left', `${e.layerX}px`)
         .style('top', `${e.layerY}px`)
         .text(`${countyName} : ${arrestTotals}`);
+
+      select(e.target).attr('opacity', '30%');
     })
-    .on('mouseleave', (e, d) => tooltip.style('display', 'none'))
-    .attr('stroke', '#073B3A')
-    .attr('stroke-width', '0.5px')
+    .on('mouseleave', (e, d) => {
+      tooltip.style('display', 'none');
+      select(e.target).attr('opacity', '100%');
+    })
+    .attr('stroke', d => {
+      if (d.properties.county === highlightCounty) return 'yellow';
+      else return '#073B3A';
+    })
+    .attr('stroke-width', d => {
+      if (d.properties.county === highlightCounty) return '2px';
+      else return '0.5px';
+    })
     .attr('d', co_geoPath)
     .attr('class', 'map-path');
 

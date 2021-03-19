@@ -56,11 +56,24 @@
             <h3>Getting Started</h3>
             <p>Welcome to the Colorado Cannabis Arrest dashboard! This dashboard shows arrest data for cannabis offenses at the county-level in Colorado from 2012 to 2017.</p>
             <p>Click on the checkboxes above the map to filter the data by year. Click on a county on the map to filter the data by county. To clear the county filter and reset the data for all counties, click on the button below this box. Enjoy!</p>
+            <p style='color: #FFFFCC; font-weight: bold; margin-bottom: 5px;'>Data Sources</p>
+            <ul>
+              <li>
+                <a href="https://data.colorado.gov/Public-Safety/Department-Of-Public-Safety-Colorado-Bureau-Of-Inv/tjwv-bqen" style='font-weight: bold'>CO Arrest Data - Colorado Department of Public Safety</a>
+              </li>
+              <li>
+                <a href="https://data.census.gov/cedsci/table?q=race&g=0400000US08.050000&d=ACS%205-Year%20Estimates%20Detailed%20Tables&tid=ACSDT5Y2017.B02001&hidePreview=false" style='font-weight: bold'>Population Data - American Community Survey (2017 5-Year Estimates)</a>
+              </li>
+            </ul>
           </div>
           <div id='reset-button'>
             <a id='county-reset'>
               Reset County Filter
             </a>
+          </div>
+          <div id='info-box' class='flex-down'>
+            <h3>About the Bar Chart</h3>
+            <p>The bar chart below allows one to spot racial disparities in the cannabis arrest data. If you click around to different counties on the map, you can see that, for many counties, the Black share of cannabis arrests for a given time period exceeds the Black share of the population.</p>
           </div>
           <div id='bar-chart-title' class='flex'></div>
           <div id='bar-chart' class='flex'></div>
