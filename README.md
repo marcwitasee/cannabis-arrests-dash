@@ -1,58 +1,16 @@
-# Dynamic Project Scaffold
+# Dynamic Data Vis Dashboard
 
-In this folder I've provided an example project that enables you to use modern javascript tooling with as little effort as possible. This scaffold includes
+This repository contains the data and source code that I used to build a dashboard that enables exploration of county arrest data for cannabis offenses in Colorado from 2012 to 2017. The dashboard allows one to explore trends in cannabis arrests at the state level as well as at the county level. It also allows one to identify where there exists racial disparity in the cannabis arrest data for Black residents by comparing the percentage of Black residents represented in the arrest data with the percentage of Black residents represented in the population data.
 
-- a dev server that combines javascript modules and presents them to the browser. This comes with autoreload for free! It's great.
-- linters and autoformaters so you'll be able to check if your writing well styled javascript code. I have some pretty strong linting in here. You can disable them if you want, but you'll be judged.
+## Link to the Website
 
+To view the dashboard, go to the following link:
 
-
-## Setup
-
-Make sure you have npm/node/yarn installed.
-
-```sh
-npm install
-# then
-npm run start
-
-# or if yarn-ing
-yarn
-# then
-yarn start
-```
+`https://marcwitasee.github.io/cannabis-arrests-dash/`
 
 
-You will need to be explicit about your imports, eg
-```js
-import {functionFromModule} from 'target-module';
-```
+## Shout outs to inspiring code
 
-In this scaffold I have not installed any d3 packages. Some helpful ones (read the ones I usually end up using) are d3-selection, d3-scale, and d3-shape. To add one of these packages just do
+A big shout to Andrew McNutt for his awesome and tremendously helpful notes on JavaScript and d3 (functional programming is fun!).
 
-```sh
-npm install --save PACKAGENAME
-
-# or if yarning
-yarn add PACKAGENAME
-```
-
-
-## Usage
-
-Development:
-
-Step 1: Do all of your work in src. There is no step 2.
-
-Production:
-
-There are currently two easy ways to deploy this scaffold onto the internet.  
-
-### Netlify
-
-Netlify is an excellent company that tries to make the dev process as easy as possible. The way you deploy this scaffold there is get an account, start a new project, point it to the relevant github folder (that contains just this scaffold!), set the build command to be 'yarn build' and that's it.
-
-
-### GH Pages
-
-gh-pages is a wonderful resource for doing web-development, and allows you to have classy YOU_PERSONAL_DOMAIN/projectname type links. You can deploy this scaffold there by running 'yarn build' in your command line, commiting the modified file, and push to github. If you've configured your projects settings correct it should all just work out.
+Another shout out to Mike Bostock and his helpful d3 [choropleth example](https://observablehq.com/@d3/choropleth) on Observable, which served as my inspiration for the code I used to create the map on the dashboard.
