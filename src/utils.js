@@ -42,6 +42,7 @@ export function getCountiesWithAllYears() {
   ];
 }
 
+// Code taken from Observable: https://observablehq.com/@d3/color-legend
 export function legend({
   color,
   title,

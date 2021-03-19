@@ -13,4 +13,4 @@ To view the dashboard, go to the following link:
 
 A big shout to Andrew McNutt for his awesome and tremendously helpful notes on JavaScript and d3 (functional programming is fun!).
 
-Another shout out to Mike Bostock and his helpful d3 [choropleth example](https://observablehq.com/@d3/choropleth) on Observable, which served as my inspiration for the code I used to create the map on the dashboard.
+Another shout out to Mike Bostock and his helpful d3 [choropleth example](https://observablehq.com/@d3/choropleth) on Observable, which served as my inspiration for the code I used to create the map on the dashboard. I also used the implementation for a [color legend](https://observablehq.com/@d3/color-legend) that the Observable team provided to create the legend for the dashboard map.
